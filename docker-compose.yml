@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+
+  user-management:
+    build: ./user-management
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/user_db
+
+  product-management:
+    build: ./product-management
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/product_db
+
+  cart:
+    build: ./cart
+    ports:
+      - "5002:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/cart_db
+
+  payment-gateway:
+    build: ./payment-gateway
+    ports:
+      - "5003:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/payment_db
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
