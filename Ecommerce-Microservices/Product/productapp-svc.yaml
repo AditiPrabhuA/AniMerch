@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: productapp-svc
+spec:
+  selector:
+    app: productapp
+  ports:
+    - port: 5051
+      targetPort: 5001
+  type: LoadBalancer

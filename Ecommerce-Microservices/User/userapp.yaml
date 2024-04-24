@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userapp
+  labels:
+    app: userapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userapp
+  template:
+    metadata:
+      labels:
+        app: userapp
+    spec:
+      containers:
+      - name: userapp
+        image: aditiprabhu/ecommerceu:v3
+        ports:
+        - containerPort: 5003
+        imagePullPolicy: Always
+        env:
+        - name: MONGO_URI
+          value: "mongodb+srv://lippitogapi:TFiItQgsfXbLiiEP@ecommerce-cluster.ke35fsq.mongodb.net/?retryWrites=true&w=majority&appName=ecommerce-cluster"
+
