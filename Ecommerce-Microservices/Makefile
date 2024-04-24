@@ -5,6 +5,9 @@ IMAGE_NAMEp=aditiprabhu/ecommercep
 IMAGE_TAGp=v2
 IMAGE_NAMEu=aditiprabhu/ecommerceu
 IMAGE_TAGu=v3
+IMAGE_NAMEc=aditiprabhu/ecommercec
+IMAGE_TAGc=v4
+
 build-order:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) ./Order
 	docker push $(IMAGE_NAME):$(IMAGE_TAG)
@@ -32,6 +35,15 @@ deploy-user:
 	kubectl apply -f User/userapp-svc.yaml
 	kubectl set image deployment/userapp userapp=$(IMAGE_NAMEu):$(IMAGE_TAGu)
 
+build-cart:
+	docker build -t $(IMAGE_NAMEc):$(IMAGE_TAGc) ./Cart
+	docker push $(IMAGE_NAMEc):$(IMAGE_TAGc)
+
+deploy-cart:
+	kubectl apply -f Cart/cartapp.yaml
+	kubectl apply -f Cart/cartapp-svc.yaml
+	kubectl set image deployment/cartapp cartapp=$(IMAGE_NAMEc):$(IMAGE_TAGc)
+
 run-frontend:
 	cd frontend && set FLASK_APP=app.py && flask run
 
@@ -43,3 +55,6 @@ test-product:
 
 test-user:
 	minikube service userapp-svc --url
+
+test-cart:
+	minikube service cartapp-svc --url

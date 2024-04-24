@@ -4,9 +4,9 @@ import os
 import pymongo.errors
 
 app = Flask(__name__)
-MONGO_URI = "mongodb+srv://lippitogapi:TFiItQgsfXbLiiEP@ecommerce-cluster.ke35fsq.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority"
 client = pymongo.MongoClient(MONGO_URI)
-db = client.get_database('Raptor')
+db = client.get_database('ecommerce')
 
 @app.route('/')
 def hello():

@@ -22,5 +22,5 @@ spec:
         imagePullPolicy: Always
         env:
         - name: MONGO_URI
-          value: "mongodb+srv://lippitogapi:TFiItQgsfXbLiiEP@ecommerce-cluster.ke35fsq.mongodb.net/?retryWrites=true&w=majority&appName=ecommerce-cluster"
+          value: "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
