@@ -1,130 +1,106 @@
-from flask import Flask, jsonify, render_template, request
-import pymongo.errors
+from fastapi import FastAPI, HTTPException
+import jsonschema
+from pydantic import BaseModel, ValidationError
+from typing import List, Optional
+from bson import ObjectId
+from pymongo import MongoClient
 
-app = Flask(__name__)
+# FastAPI app setup
+app = FastAPI()
+
+# MongoDB connection
 MONGO_URI = "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority"
-client = pymongo.MongoClient(MONGO_URI)
-db = client.get_database('ecommerce')
+client = MongoClient(MONGO_URI)
+db = client.ecommerce
+carts_collection = db['Carts']
+users_collection = db['Users']
+products_collection = db['Products']
 
-@app.route("/")
-def hello():
-    return jsonify("Welcome to cart")
+# Define the schema for a cart item
+cart_item_schema = {
+    "type": "object",
+    "properties": {
+        "product_id": {"type": "number"},
+        "product_name": {"type": "string"},
+        "quantity": {"type": "number", "minimum": 1},
+        "price": {"type": "number", "minimum": 0}
+    },
+    "required": ["product_id", "product_name", "quantity", "price"]
+}
 
-@app.route('/check')
-def check():
-    a = 0
-    try:
-        db.command('ping')
-        print("MongoDB Connection Successful!")
-        a = 1
-    except pymongo.errors.ConnectionFailure:
-        print("MongoDB Connection Failed!")
-    return jsonify(a)
+# Define Pydantic models
+class CartItem(BaseModel):
+    product_id: int
+    product_name: str
+    quantity: int
+    price: float
 
-# Add a product to the cart
-@app.route('/cart', methods=['POST'])
-def add_to_cart():
-    carts = db.carts
-    data = request.get_json()
-    userid = data.get('userid')
-    product_name = data.get('productname')
-    quantity = data.get('quantity')
-
-    # Fetch the product details from the products collection
-    products = db.products
-    product = products.find({"name": product_name})
-
-    if not product:
-        return jsonify({'error': 'Product not found'}), 404
-
-    # Check if the user has an existing cart
-    cart = carts.find_one({'userid': userid})
-
-    if not cart:
-        # Create a new cart for the user
-        cart = {
-            'userid': userid,
-            'products': [
-                {
-                    'productid': str(product["productid"]),
-                    'name': product["name"],
-                    'quantity': quantity
-                }
-            ]
-        }
-        carts.insert_one(cart)
-    else:
-        # Add the product to the existing cart
-        existing_product = next((p for p in cart['products'] if p['productid'] == str(product['_id'])), None)
-        if existing_product:
-            existing_product['quantity'] += quantity
-        else:
-            cart['products'].append({
-                'productid': str(product['_id']),
-                'name': product['name'],
-                'quantity': quantity
-            })
-        carts.update_one({'userid': userid}, {'$set': {'products': cart['products']}})
-
-    return jsonify({'message': 'Product added to cart'}), 200
-
-# Get the cart for a user
-@app.route('/cart/<int:userid>', methods=['GET'])
-def get_cart(userid):
-    carts = db.carts
-    cart = carts.find_one({'userid': userid}, {'_id': 0})
+    @classmethod
+    def validate_cart_item(cls, data: dict) -> bool:
+        try:
+            jsonschema.validate(data, cart_item_schema)
+            return True, None
+        except jsonschema.exceptions.ValidationError as e:
+            return False, str(e)
+        
+@app.get("/cart/{userId}")
+async def get_cart(userId: str):
+    cart = carts_collection.find_one({'userId': userId})
     if cart:
-        return jsonify(cart)
+        cart['_id'] = str(cart['_id'])
+        return cart
     else:
-        return jsonify({'error': 'Cart not found'}), 404
+        raise HTTPException(status_code=404, detail="Cart not found")
 
-# Update the quantity of a product in the cart
-@app.route('/cart/<int:userid>/<product_name>', methods=['PUT'])
-def update_cart(userid, product_name):
-    carts = db.carts
-    data = request.get_json()
-    quantity = data.get('quantity')
-
-    cart = carts.find_one({'userid': userid})
-    if not cart:
-        return jsonify({'error': 'Cart not found'}), 404
-
-    product_found = False
-    for product in cart['products']:
-        if product['name'] == product_name:
-            product['quantity'] = quantity
-            product_found = True
-            break
-
-    if not product_found:
-        return jsonify({'error': 'Product not found in cart'}), 404
-
-    carts.update_one({'userid': userid}, {'$set': {'products': cart['products']}})
-    return jsonify({'message': 'Cart updated'}), 200
-
-# Remove a product from the cart
-@app.route('/cart/<int:userid>/<product_name>', methods=['DELETE'])
-def remove_from_cart(userid, product_name):
-    carts = db.carts
-
-    cart = carts.find_one({'userid': userid})
-    if not cart:
-        return jsonify({'error': 'Cart not found'}), 404
-
-    cart['products'] = [p for p in cart['products'] if p['name'] != product_name]
-
-    if not cart['products']:
-        # If the cart is empty, remove the cart document
-        carts.delete_one({'userid': userid})
+@app.post("/cart/{userId}")
+async def add_to_cart(userId: str, item: CartItem):
+    is_valid, error = CartItem.validate_cart_item(item.dict())
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=f"Invalid item data: {error}")
+    
+    item_dict = item.dict()
+    item_dict['userId'] = userId
+    result = carts_collection.update_one({'userId': userId}, {'$push': {'items': item_dict}}, upsert=True)
+    if result.upserted_id:
+        return {"message": "Cart created and item added"}
     else:
-        carts.update_one({'userid': userid}, {'$set': {'products': cart['products']}})
+        return {"message": "Item added to existing cart"}
 
-    return jsonify({'message': 'Product removed from cart'}), 200
+@app.put("/cart/{userId}/item/{product_id}")
+async def update_cart_item(userId: str, product_id: int, item: CartItem):
+    is_valid, error = CartItem.validate_cart_item(item.dict())
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=f"Invalid item data: {error}")
+    
+    result = carts_collection.update_one(
+        {'userId': userId, 'items.product_id': product_id},
+        {'$set': {'items.$.quantity': item.quantity, 'items.$.price': item.price}}
+    )
+    if result.modified_count:
+        return {"message": "Item updated"}
+    else:
+        raise HTTPException(status_code=404, detail="Item not found")
 
-# Route to render the HTML template
-@app.route('/view_cart')
-def view_cart():
-    return render_template('index.html')
+@app.delete("/cart/{userId}/item/{product_id}")
+async def delete_cart_item(userId: str, product_id: int):
+    result = carts_collection.update_one(
+        {'userId': userId},
+        {'$pull': {'items': {'product_id': product_id}}}
+    )
+    if result.modified_count:
+        return {"message": "Item removed"}
+    else:
+        raise HTTPException(status_code=404, detail="Item not found")
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5004, debug=True)
+@app.get("/cart/{userId}/total")
+async def calculate_total(userId: str):
+    cart = carts_collection.find_one({'userId': userId})
+    if cart:
+        total = sum(item['price'] * item['quantity'] for item in cart['items'])
+        return {"total": total}
+    else:
+        raise HTTPException(status_code=404, detail="Cart not found")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
