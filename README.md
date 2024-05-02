@@ -17,5 +17,8 @@ we create a sandbox user and direct all the requests coming from it to the devel
 once we verify the working of the microservices we can redirect all the consumer's requests to the microservices and remove those components from the monolithic application.
 
 
-
+# Procedure to run the code:
+  1. Run: minikube start
+  2. Run the Makefile
+  3. Run: minikube service ui-service (should open the website in a new tab)
 
