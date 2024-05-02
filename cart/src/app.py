@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MONGO_URI = "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = "mongodb_uri"
 client = MongoClient(MONGO_URI)
 db = client.ecommerce
 carts_collection = db['Carts']
