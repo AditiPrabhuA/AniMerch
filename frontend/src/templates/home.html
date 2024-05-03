@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Distinct Anomalies Store</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand img {
+            width: 50px; /* Adjust the size as needed */
+            height: auto;
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            justify-content: center;
+            width: 100%;
+        }
+        /* Image styling */
+        .content {
+            position: relative;
+            background-image: url("https://images.unsplash.com/photo-1481882563558-a1b9f5f7744a?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+            background-size: cover;
+            background-position: center;
+            height: calc(100vh - 56px); /* Adjust for the height of the navbar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .content:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Adjust the opacity as needed */
+        }
+        .content h1 {
+            color: white;
+            font-size: 60px;
+            text-align: center;
+            z-index: 1; /* Ensure the text appears above the background */
+        }
+        .content img {
+            position: relative;
+            width: 100%; /* Ensure the image covers the entire space */
+            height: auto;
+            border-radius: 10px;
+            max-width: 100%;
+            z-index: 1; /* Ensure the image appears above the background */
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand lead " href="#"><em>The Distinct Anomalies Store</em></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+<div class="content">
+    <h1 class="lead">Discover Your Favorite Merchandise</h1>
+    
+    <!-- You can remove this image tag if you're using the background image -->
+    <!-- <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YW5pbWUlMjBtZXJjaGFuZGlzZXxlbnwwfDB8MHx8fDA%3D" alt="Image"> -->
+</div>
+
+<!-- Bootstrap JS (Optional, if you need dropdowns or other components) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

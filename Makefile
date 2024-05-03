@@ -1,5 +1,5 @@
 # Makefile
-IMAGE_NAME=aditiprabhu/myappfi
+IMAGE_NAME=revanthsreeram/myappfi
 IMAGE_TAG=auth16
 build-auth:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) ./backend/auth
@@ -13,7 +13,7 @@ deploy-auth:
 test-auth:
 	minikube service auth-service --url
 
-IMAGE_NAME2=aditiprabhu/myappfi
+IMAGE_NAME2=revanthsreeram/myappfi
 IMAGE_TAG2=ui20
 build-ui:
 	docker build -t $(IMAGE_NAME2):$(IMAGE_TAG2) ./frontend
@@ -27,7 +27,7 @@ deploy-ui:
 test-ui:
 	minikube service ui-service --url
 
-IMAGE_NAME3=aditiprabhu/myappfi
+IMAGE_NAME3=revanthsreeram/myappfi
 IMAGE_TAG3=cart16
 build-cart:
 	docker build -t $(IMAGE_NAME3):$(IMAGE_TAG3) ./backend/cart
@@ -41,7 +41,7 @@ deploy-cart:
 test-cart:
 	minikube service cartapp-svc --url
 
-IMAGE_NAME4=aditiprabhu/myappfi
+IMAGE_NAME4=revanthsreeram/myappfi
 IMAGE_TAG4=pro17
 build-product:
 	docker build -t $(IMAGE_NAME4):$(IMAGE_TAG4) ./backend/product

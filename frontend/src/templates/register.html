@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Distinct Anomalies Store</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand img {
+            width: 50px;
+            height: auto;
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            justify-content: center;
+            width: 100%;
+        }
+        .content {
+            position: relative;
+            background-image: url("https://unsplash.com/photos/5aN_QNPSIdA/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzE0MjEyMjIzfA&force=true&w=2400");
+            background-size: cover;
+            background-position: center;
+            height: calc(100vh - 56px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .registration-form {
+            max-width: 1000px;
+            padding: 20px;
+            height: 555px;
+            width: 650px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid black;
+            border-radius: 20px;
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .registration-form h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .registration-form .form-control {
+            width: 450px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand lead" href="#"><em>The Distinct Anomalies Store</em></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="{{ url_for('register') }}">Register <span class="sr-only">(current)</span></a>
+        </li>
+      </ul>
+    </div>
+</nav>
+<div class="content">
+<div class="container d-flex justify-content-center">
+    <div class="registration-form">
+        <form method="post">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter your name " id="name" name="name" required size=15>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" placeholder="Enter your age" id="age" name="age" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select class="form-control" id="gender" name="gender" required>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required placeholder="Enter username (no spaces)">
+                <small class="text-danger" id="usernameError" style="display: none;">Username cannot contain spaces.</small>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-dark btn-block">Register</button>
+        </form>
+    </div>
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    document.getElementById('username').addEventListener('input', function(event) {
+        var username = event.target.value;
+        if (username.includes(' ')) {
+            document.getElementById('usernameError').style.display = 'block';
+            event.target.setCustomValidity('Username cannot contain spaces.');
+        } else {
+            document.getElementById('usernameError').style.display = 'none';
+            event.target.setCustomValidity('');
+        }
+    });
+</script>
+
+</body>
+</html>

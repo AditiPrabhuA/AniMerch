@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand img {
+            width: 50px;
+            height: auto;
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            justify-content: center;
+            width: 100%;
+        }
+        .content {
+            position: relative;
+            height: calc(100vh - 56px); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .content:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); 
+        }
+        .content h1 {
+            color: white;
+            font-size: 60px;
+            text-align: center;
+            z-index: 1; 
+        }
+        .content img {
+            position: relative;
+            width: 100%; 
+            height: auto;
+            border-radius: 10px;
+            max-width: 100%;
+            z-index: 1; 
+        }
+        .product-card {
+            width: 300px;
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand lead " href="#"><em>The Distinct Anomalies Store</em></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('get_products',userId=user) }}">Products</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('get_cart',userId=user) }}">Cart</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('get_orders', userId=userc) }}">Orders</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">Logout</a>
+              </li>
+          </ul>
+        </div>
+      </nav>
+<div class="container">
+    
+    <div id="products-container" class="d-flex flex-wrap justify-content-center">
+        {% for product in response_data %}
+        <div class="product-card">
+            <h3 class="lead"><strong>{{ product.name }}</strong></h3>
+            <img src="{{ product.img_url }}" alt="{{ product.name }}">
+            
+            <p class="lead">Quantity: {{ product.quantity }}</p>
+            <p class="lead">Price: Rs.{{ product.price }}</p>
+            <button class="btn btn-primary btn-dark" onclick="addToCart('{{user}}','{{ product.product_id }}')">Add to Cart</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    function addToCart(useri,productId) {
+        fetch('http://127.0.0.1:5004/cart/'+useri+'/additem/'+productId, {
+            method: 'POST',
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Product added to cart successfully!');
+            } else {
+                alert('Failed to add product to cart.');
+            }
+        })
+        .catch(error => console.error('Error adding to cart:', error));
+    }
+</script>
+
+</body>
+</html>
