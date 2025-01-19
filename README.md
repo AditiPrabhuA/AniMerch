@@ -20,5 +20,5 @@ once we verify the working of the microservices we can redirect all the consumer
 # Procedure to run the code:
   1. Run: minikube start
   2. Run the Makefile
-  3. Run: minikube service ui-service (should open the website in a new tab)
+  3. Run: minikube service ui-service --url(should open the website in a new tab)
 
