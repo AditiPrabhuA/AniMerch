@@ -2,12 +2,12 @@
 IMAGE_NAME=revanthsreeram/myappfi
 IMAGE_TAG=auth16
 build-auth:
-	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) ./backend/auth
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) ./auth
 	docker push $(IMAGE_NAME):$(IMAGE_TAG)
 
 deploy-auth:
-	kubectl apply -f backend/auth/auth-deployment.yaml
-	kubectl apply -f backend/auth/auth-service.yaml
+	kubectl apply -f auth/auth-deployment.yaml
+	kubectl apply -f auth/auth-service.yaml
 	kubectl set image deployment/auth auth=$(IMAGE_NAME):$(IMAGE_TAG)
 
 test-auth:
@@ -30,12 +30,12 @@ test-ui:
 IMAGE_NAME3=revanthsreeram/myappfi
 IMAGE_TAG3=cart16
 build-cart:
-	docker build -t $(IMAGE_NAME3):$(IMAGE_TAG3) ./backend/cart
+	docker build -t $(IMAGE_NAME3):$(IMAGE_TAG3) ./cart
 	docker push $(IMAGE_NAME3):$(IMAGE_TAG3)
 
 deploy-cart:
-	kubectl apply -f backend/cart/cartapp.yaml
-	kubectl apply -f backend/cart/cartapp-svc.yaml
+	kubectl apply -f cart/cartapp.yaml
+	kubectl apply -f cart/cartapp-svc.yaml
 	kubectl set image deployment/cartapp cartapp=$(IMAGE_NAME3):$(IMAGE_TAG3)
 
 test-cart:
@@ -44,12 +44,12 @@ test-cart:
 IMAGE_NAME4=revanthsreeram/myappfi
 IMAGE_TAG4=pro17
 build-product:
-	docker build -t $(IMAGE_NAME4):$(IMAGE_TAG4) ./backend/product
+	docker build -t $(IMAGE_NAME4):$(IMAGE_TAG4) ./product
 	docker push $(IMAGE_NAME4):$(IMAGE_TAG4)
 
 deploy-product:
-	kubectl apply -f backend/product/product-deployment.yaml
-	kubectl apply -f backend/product/product-service.yaml
+	kubectl apply -f product/product-deployment.yaml
+	kubectl apply -f product/product-service.yaml
 	kubectl set image deployment/product product=$(IMAGE_NAME4):$(IMAGE_TAG4)
 
 test-product:
