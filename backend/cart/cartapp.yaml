@@ -16,10 +16,10 @@ spec:
     spec:
       containers:
       - name: cartapp
-        image: //docker_hub_repository
+        image: {docker_repository_image_path:image_tag}
+        imagePullPolicy: Always
         ports:
         - containerPort: 5004
-        imagePullPolicy: Always
         env:
         - name: MONGO_URI
-          value: "mongo_db_url"
+          value: "{mongodb_cluster_uri}"

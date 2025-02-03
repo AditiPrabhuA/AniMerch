@@ -3,3 +3,4 @@ uvicorn
 mongoengine
 pydantic
 python-multipart==0.0.5
+bcrypt

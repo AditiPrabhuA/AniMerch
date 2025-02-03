@@ -1,13 +1,11 @@
-from typing import Optional
-from bson import ObjectId
 from pydantic import BaseModel, validator
 from fastapi import FastAPI, HTTPException
 import pymongo
 from jsonschema import validate, ValidationError
-
+from datetime import datetime
 app = FastAPI()
 
-MONGO_URI = "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = "{mongodb_cluster_uri}"
 client = pymongo.MongoClient(MONGO_URI)
 db = client.get_database('ecommerce')
 
@@ -46,7 +44,8 @@ def validate_product(data: dict):
 @app.post("/products", response_model=Product)
 async def create_product(product: Product):
     validate_product(product.dict())
-    result = db.products.insert_one(product.dict())
+    product_data = product.dict()
+    result = db.products.insert_one(product_data)
     product_id = str(result.inserted_id)
     return {"product_id": product_id, **product.dict()}
 
@@ -69,28 +68,10 @@ def get_products():
 def get_product(product_id: int):
     product = db.products.find_one({"product_id": product_id})
     if product:
-        product["product_id"] = product["product_id"]
         return Product(**product)
     else:
         raise HTTPException(status_code=404, detail="Product not found")
 
-@app.put("/products/{product_id}", response_model=Product)
-def update_product(product_id: int, updated_data: dict):
-    validate_product(updated_data)
-
-    product = db.products.find_one({"product_id": product_id})
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    updated_product = {**product, **updated_data}
-    result = db.products.update_one({"product_id": product_id}, {"$set": updated_product})
-
-    if result.modified_count == 1:
-        updated_product["product_id"] = updated_product["product_id"]
-        return Product(**updated_product)
-    else:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
 @app.delete("/products/{product_id}")
 def delete_product(product_id: int):
     result = db.products.delete_one({"product_id": product_id})
@@ -101,4 +82,4 @@ def delete_product(product_id: int):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5002)
+    uvicorn.run(app, host="0.0.0.0", port=5001)

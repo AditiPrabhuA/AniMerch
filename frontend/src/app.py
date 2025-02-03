@@ -9,29 +9,9 @@ app = Flask(__name__,template_folder='templates')
 def home():
     return render_template('home.html')
 
-@app.route("/test")
+@app.route("/orders")
 def test():
     return render_template("test.html")
-
-@app.route('/allproducts', methods=['GET', 'POST'])
-def addproducts():
-    if request.method == 'POST':
-        name = request.form['name']
-        price = request.form['price']
-        try:
-            response = requests.post(f'http://product-service.default.svc.cluster.local:5001/products', json={
-                'name': name,
-                'price': price
-            })
-            print(response)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            error = 'product not added'
-            return render_template('products.html', error=error)
-    
-    return render_template('products.html')
-
-LOGIN_K = "http://auth-service.default.svc.cluster.local:8000/token"
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -47,14 +27,44 @@ def login():
             print(response)
             response.raise_for_status()
             res = response.json()
+            if username=='admin':
+                return redirect(url_for('admin'))
             return redirect(url_for('get_products',userId=res["access_token"]))
         except requests.exceptions.RequestException as e:
             error = 'Invalid username or password'
             return render_template('login.html', error=error)
     
     return render_template('login.html')
+    
+@app.route('/admin',methods=['GET','POST'])
+def admin():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        pid = request.form.get('pid')
+        name = request.form.get('name')
+        price = request.form.get('price')
+        quantity = request.form.get('quantity')
+        url = request.form.get('url')
+        try:
+            if action=='add':
+                response = requests.post(f'http://product-service.default.svc.cluster.local:5001/products', json={
+                    'product_id': pid,
+                    'name': name,
+                    'price': price,
+                    'quantity': quantity,
+                    'img_url': url
+                })
+                response.raise_for_status()
+                return redirect(url_for('admin'))
+            elif action=='delete':
+                response = requests.delete(f'http://product-service.default.svc.cluster.local:5001/products/{pid}')
+                response.raise_for_status()
+                return redirect(url_for('admin'))
+        except requests.exceptions.RequestException as e:
+            error = f'Failed to {action} product: {e}'
+            return render_template('admin.html', error=error)
+    return render_template('admin.html')
 
-REG_K = "http://auth-service.default.svc.cluster.local:8000/register"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -80,8 +90,6 @@ def register():
             return render_template('register.html', error=error)
     return render_template('register.html')
 
-FASTAPI_SERVICE_URL = "http://localhost:8000"
-
 @app.route('/cart/<userId>', methods=['GET'])
 def get_cart(userId):
     try:
@@ -95,27 +103,12 @@ def get_cart(userId):
         error = 'Empty Cart or Cart not found'
         return render_template('cart.html',userc = userId,cart_total=cart_total,error = error)
 
+
+
 @app.route('/getproducts/<userId>', methods=['GET'])
 def get_products(userId):
     response = requests.get(f"http://product-service.default.svc.cluster.local:5001/products")
     return render_template('dispproducts.html', response_data = response.json(),user=userId)
-
-@app.route('/cart/<userId>/item/<int:product_id>', methods=['PUT'])
-def update_cart_item(userId, product_id):
-    item = request.form
-    response = requests.put(f"http://cartapp-svc.default.svc.cluster.local:5004/cart/{userId}/item/{product_id}", json=item)
-    return redirect(url_for('get_cart', userId=userId))
-
-@app.route('/cart/<userId>/item/<int:product_id>', methods=['DELETE'])
-def delete_cart_item(userId, product_id):
-    response = requests.delete(f"http://cartapp-svc.default.svc.cluster.local:5004/cart/{userId}/item/{product_id}")
-    return redirect(url_for('get_cart', userId=userId))
-
-@app.route('/cart/<userId>/total', methods=['GET'])
-def calculate_total(userId):
-    response = requests.get(f"http://cartapp-svc.default.svc.cluster.local:5004/cart/{userId}/total")
-    total = response.json()['total']
-    return render_template('total.html', total=total)
 
 @app.route('/orders/<userId>', methods=['GET'])
 def get_orders(userId):

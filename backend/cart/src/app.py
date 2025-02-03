@@ -1,37 +1,37 @@
 from fastapi import FastAPI, HTTPException
 import jsonschema
-from pydantic import BaseModel, ValidationError
-from typing import List, Optional
-from bson import ObjectId
+from pydantic import BaseModel
+from typing import List
 from pymongo import MongoClient
 import requests
 import uvicorn
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://ui-service.default.svc.cluster.local:5000"], 
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
-MONGO_URI = "mongodb_uri"
+MONGO_URI = "{mongodb_cluster_uri}"
 client = MongoClient(MONGO_URI)
 db = client.ecommerce
-carts_collection = db['Carts']
-users_collection = db['Users']
-products_collection = db['Products']
-orders_collection = db['Orders']
+carts_collection = db['carts']
+orders_collection = db['orders']
+products_collection = db['products']
 
+#To validate the schema
 cart_item_schema = {
     "type": "object",
     "properties": {
         "product_id": {"type": "number"},
         "product_name": {"type": "string"},
-        "quantity": {"type": "number"},
+        "quantity": {"type": "number", "minimum": 0},
         "price": {"type": "number", "minimum": 0}
     },
     "required": ["product_id", "product_name", "quantity", "price"]
@@ -57,6 +57,7 @@ class Order(BaseModel):
     items: List[CartItem]
     total: float
     date: str
+    status: str
         
 @app.get("/cart/{userId}")
 async def get_cart(userId: str):
@@ -66,17 +67,8 @@ async def get_cart(userId: str):
         return cart
     else:
         carts_collection.insert_one({'userId': userId, 'items': []})
-    
-def delete_cart_ite(userId: str, product_id: int):
-    result = carts_collection.update_one(
-        {'userId': userId},
-        {'$pull': {'items': {'product_id': product_id}}}
-    )
-    if result.modified_count:
-        return {"message": "Item removed"}
-    else:
-        raise HTTPException(status_code=404, detail="Item not found")
 
+#To update the item numbers in cart +/-
 def add_or_update_item_in_cart(userId: str, item: CartItem):
     try:
         jsonschema.validate(item.dict(), cart_item_schema)
@@ -95,7 +87,10 @@ def add_or_update_item_in_cart(userId: str, item: CartItem):
                     {'$set': {'items.$.quantity': existing_item['quantity']}}
                 )
             else:
-                res = delete_cart_ite(userId,product_id)
+                carts_collection.update_one(
+                    {'userId': userId, 'items.product_id': product_id},
+                    {'$pull': {'items': {'product_id': product_id}}}
+                )
         else:
             carts_collection.update_one(
                 {'userId': userId},
@@ -108,10 +103,22 @@ def add_or_update_item_in_cart(userId: str, item: CartItem):
 async def add_or_update_cart_item(userId: str, product_id: int):
     item = CartItem(product_id=product_id, product_name="", quantity=1, price=0.0)
     res = requests.get(f'http://product-service.default.svc.cluster.local:5001/products/{product_id}')
-    print(res)
-    resj = res.json()
-    item.product_name=resj['name']
-    item.price=resj['price']
+
+    if not res.ok:
+        raise HTTPException(status_code=404,detail="Product not found")
+    product = res.json()
+    item.product_name=product['name']
+    item.price=product['price']
+    current_cart = carts_collection.find_one({'userId':userId})
+    current_cart_quantity = 0
+    if current_cart:
+        for i in current_cart['items']: 
+            if i['product_id']==product_id:
+                current_cart_quantity = i['quantity']
+                break
+    if current_cart_quantity+1 > product['quantity']:
+        raise HTTPException(status_code=400,detail=f"cant add more items to cart")
+
     add_or_update_item_in_cart(userId, item)
     return {"message": "Item added/updated in cart"}
 
@@ -120,22 +127,11 @@ async def add_or_update_cart_item(userId: str, product_id: int):
     item = CartItem(product_id=product_id, product_name="", quantity=-1, price=0.0)
     res = requests.get(f'http://product-service.default.svc.cluster.local:5001/products/{product_id}')
     print(res)
-    resj = res.json()
-    item.product_name=resj['name']
-    item.price=resj['price']
+    product = res.json()
+    item.product_name=product['name']
+    item.price=product['price']
     add_or_update_item_in_cart(userId, item)
     return {"message": "Item added/updated in cart"}
-
-@app.delete("/cart/{userId}/item/{product_id}")
-async def delete_cart_item(userId: str, product_id: int):
-    result = carts_collection.update_one(
-        {'userId': userId},
-        {'$pull': {'items': {'product_id': product_id}}}
-    )
-    if result.modified_count:
-        return {"message": "Item removed"}
-    else:
-        raise HTTPException(status_code=404, detail="Item not found")
 
 @app.get("/cart/{userId}/total")
 async def calculate_total(userId: str):
@@ -166,13 +162,49 @@ async def process_payment(userId: str):
         'userId': userId,
         'items': cart['items'],
         'total': sum(item['price'] * item['quantity'] for item in cart['items']),
-        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'status': 'Processing'
     }
+    
     orders_collection.insert_one(order)
     
-    carts_collection.delete_one({'userId': userId})
+    await asyncio.sleep(10)
     
-    return {"message": "Payment processed successfully"}
+    current_order = orders_collection.find_one({'userId': userId, '_id': order['_id'], 'status': {'$in': ['Processing', 'Paid']}})
+    
+    if current_order['status'] == 'Paid':
+        for item in cart['items']:
+            products_collection.update_one(
+                {'product_id': item['product_id']}, 
+                {'$inc': {'quantity': -item['quantity']}}
+            )
+    else:
+        orders_collection.update_one(
+            {'userId': userId, 'status': 'Processing', '_id': order['_id']},
+            {'$set': {'status': 'Not Paid'}}
+        )
+
+    carts_collection.delete_one({'userId': userId})
+    return {"message": "Order processed"}
+
+@app.post('/cart/{userId}/finalise_payment')
+async def finalise_payment(userId: str):
+    order = orders_collection.find_one(
+        {'userId': userId, 'status': 'Processing'},sort=[('date', -1)]
+    )
+    if not order:
+        raise HTTPException(status_code=404, detail="No processing order found")
+    
+    orders_collection.update_one(
+        {'_id': order['_id']},
+        {'$set': {'status': 'Paid'}}
+    )
+    return {"message": "Payment finalized successfully"}
+
+@app.delete('/cart/{userId}')
+async def deleteCart(userId: str):
+    carts_collection.delete_one({'userId': userId})
+
 
 if __name__ == "__main__":
     

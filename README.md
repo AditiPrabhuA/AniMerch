@@ -1,24 +1,49 @@
-# Cloud-Computing-Microservice-Architecture
+# Cloud Computing: Microservice Architecture
 
-The project's primary objective is to transition a monolithic architecture based e-commerce web application into a microservices architecture.
+This project is a cloud-based e-commerce application built using a microservices architecture. The application is designed to provide a scalable and fault-tolerant platform for users to browse and purchase products.
 
-![image](https://github.com/revanthsreeram/018_036_039_070_Migrating-a-monolithic-e-commerce-application-to-a-microservices-architecture/assets/103492140/1408d136-ed38-4449-91b1-3620430ca780)
-the above image shows a monolithic e-commerce application. Consumers access the services through the respective controllers which redirect their requests to the respective services.
+## Architecture
+The application is composed of the following microservices:
 
-![image](https://github.com/revanthsreeram/018_036_039_070_Migrating-a-monolithic-e-commerce-application-to-a-microservices-architecture/assets/103492140/85d9e3b9-c1de-4c00-9fd8-ffbf87c96888)
-we direct consumers to access the application through an api gateway.
+1. Product Service: Responsible for managing product information, including product ID, name, price, quantity, and image URL.
+2. Cart Service: Handles user cart operations, including adding, removing, and updating items.
+3. Order Service: Manages order processing, including payment processing and order status updates.
+4. Auth Service: Handles user authentication and registration.
+5. Frontend: A web-based interface for users to interact with the application.
 
-Meanwhile, we can start developing the microservices.
+## Requirements
+- Python 3.9+
+- FastAPI
+- MongoDB
+- Flask
 
-![image](https://github.com/revanthsreeram/018_036_039_070_Migrating-a-monolithic-e-commerce-application-to-a-microservices-architecture/assets/103492140/3be8294e-1793-49f1-9f13-b69af79cf9cf)
-we create a sandbox user and direct all the requests coming from it to the developed microservices through the api gateway. We do this to make sure that the microservices are functioning properly.
+## Setup Instructions
 
-![image](https://github.com/revanthsreeram/018_036_039_070_Migrating-a-monolithic-e-commerce-application-to-a-microservices-architecture/assets/103492140/99234db7-9c95-4e3c-9057-2c792f837810)
-once we verify the working of the microservices we can redirect all the consumer's requests to the microservices and remove those components from the monolithic application.
+1. Clone the repository: 
+```bash
+git clone https://github.com/AditiPrabhuA/AniMerch.git
+```
 
+2. Install dependencies: 
+```bash
+pip install -r requirements.txt
+```
+3. Start minikube
+```bash
+minikube start
+```
 
-# Procedure to run the code:
-  1. Run: minikube start
-  2. Run the Makefile
-  3. Run: minikube service ui-service --url(should open the website in a new tab)
+4. Start the services in individual terminals:
+```bash
+make build-{service_name}
+make deploy-{servive_name}
+make test-{service_name}
+```
+5. Run minikube tunnel in a new terminal
+```bash
+minikube tunnel
+```
 
+6. Click on the link provided by the ui service to access the website
+
+### NOTE: replace the mongodb connection uri and the docker hub repository names with actual ones before running

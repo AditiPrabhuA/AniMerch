@@ -14,9 +14,10 @@ spec:
     spec:
       containers:
       - name: ui
-        image: revanthsreeram/myappfi:ui20
+        image: {docker_repository_image_path:image_tag}
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
         - name: MONGO_URI
-          value: "mongodb+srv://arevanthsreeram:Dg4eP6YcuClsxTf9@cluster0.lgmqzy1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+          value: "{mongodb_cluster_uri}"
